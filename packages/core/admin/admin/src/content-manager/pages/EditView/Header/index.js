@@ -17,8 +17,14 @@ import { Typography } from '@strapi/design-system/Typography';
 import { Stack } from '@strapi/design-system/Stack';
 import ExclamationMarkCircle from '@strapi/icons/ExclamationMarkCircle';
 import Check from '@strapi/icons/Check';
+import styled from 'styled-components';
 import { getTrad } from '../../../utils';
 import { connect, select } from './utils';
+
+// TODO: replace with textAlign Typography props when available
+const FlexTextAlign = styled(Flex)`
+  text-align: center;
+`;
 
 const Header = ({
   allowedActions: { canUpdate, canCreate, canPublish },
@@ -31,6 +37,8 @@ const Header = ({
   onPublish,
   onUnpublish,
   status,
+  publishConfirmation: { show: showPublishConfirmation, draftCount },
+  onPublishPromptDismissal,
 }) => {
   const { goBack } = useHistory();
   const [showWarningUnpublish, setWarningUnpublish] = useState(false);
@@ -189,7 +197,7 @@ const Header = ({
               <Button onClick={toggleWarningUnpublish} variant="tertiary">
                 {formatMessage({
                   id: 'components.popUpWarning.button.cancel',
-                  defaultMessage: 'No, cancel',
+                  defaultMessage: 'Cancel',
                 })}
               </Button>
             }
@@ -197,7 +205,66 @@ const Header = ({
               <Button variant="danger-light" onClick={handleUnpublish}>
                 {formatMessage({
                   id: 'components.popUpWarning.button.confirm',
-                  defaultMessage: 'Yes, confirm',
+                  defaultMessage: 'Confirm',
+                })}
+              </Button>
+            }
+          />
+        </Dialog>
+      )}
+      {showPublishConfirmation && (
+        <Dialog
+          onClose={onPublishPromptDismissal}
+          title={formatMessage({
+            id: getTrad(`popUpWarning.warning.has-draft-relations.title`),
+            defaultMessage: 'Confirmation',
+          })}
+          labelledBy="confirmation"
+          describedBy="confirm-description"
+          isOpen={showPublishConfirmation}
+        >
+          <DialogBody icon={<ExclamationMarkCircle />}>
+            <Stack spacing={2}>
+              <FlexTextAlign justifyContent="center">
+                <Typography id="confirm-description">
+                  {draftCount}
+                  {formatMessage(
+                    {
+                      id: getTrad(`popUpwarning.warning.has-draft-relations.message`),
+                      defaultMessage:
+                        '<b>{count, plural, one { relation is} other { relations are}}</b> not published yet and might lead to unexpected behavior.',
+                    },
+                    {
+                      b: (chunks) => <Typography fontWeight="bold">{chunks}</Typography>,
+                      count: draftCount,
+                    }
+                  )}
+                </Typography>
+              </FlexTextAlign>
+              <FlexTextAlign justifyContent="center">
+                <Typography id="confirm-description">
+                  {formatMessage({
+                    id: getTrad('popUpWarning.warning.publish-question'),
+                    defaultMessage: 'Do you still want to publish it?',
+                  })}
+                </Typography>
+              </FlexTextAlign>
+            </Stack>
+          </DialogBody>
+          <DialogFooter
+            startAction={
+              <Button onClick={onPublishPromptDismissal} variant="tertiary">
+                {formatMessage({
+                  id: 'components.popUpWarning.button.cancel',
+                  defaultMessage: 'Cancel',
+                })}
+              </Button>
+            }
+            endAction={
+              <Button variant="success" onClick={onPublish}>
+                {formatMessage({
+                  id: getTrad('popUpwarning.warning.has-draft-relations.button-confirm'),
+                  defaultMessage: 'Publish',
                 })}
               </Button>
             }
@@ -223,6 +290,11 @@ Header.propTypes = {
   modifiedData: PropTypes.object.isRequired,
   onPublish: PropTypes.func.isRequired,
   onUnpublish: PropTypes.func.isRequired,
+  publishConfirmation: PropTypes.shape({
+    show: PropTypes.bool.isRequired,
+    draftCount: PropTypes.number.isRequired,
+  }).isRequired,
+  onPublishPromptDismissal: PropTypes.func.isRequired,
 };
 
 const Memoized = memo(Header, isEqualFastCompare);
