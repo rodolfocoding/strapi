@@ -12,7 +12,7 @@ import { PUBLICATION_STATES, RELATIONS_TO_DISPLAY, SEARCH_RESULTS_TO_DISPLAY } f
 import { getTrad } from '../../utils';
 
 export const RelationInputDataManger = ({
-  componentUid,
+  componentId,
   editable,
   description,
   intlLabel,
@@ -34,14 +34,6 @@ export const RelationInputDataManger = ({
     useCMEditViewDataManager();
   const [{ query }] = useQueryParams();
 
-  const getEntityId = () => {
-    if (componentUid) {
-      return get(initialData, name.split('.').slice(0, -1))?.id;
-    }
-
-    return initialData.id;
-  };
-
   const { relations, search, searchFor } = useRelation(`${slug}-${name}-${initialData?.id ?? ''}`, {
     relation: {
       enabled: get(initialData, name)?.count !== 0 && !!endpoints.relation,
@@ -57,7 +49,7 @@ export const RelationInputDataManger = ({
       endpoint: endpoints.search,
       pageParams: {
         ...defaultParams,
-        entityId: isCreatingEntry ? undefined : getEntityId(),
+        entityId: isCreatingEntry ? undefined : componentId ?? initialData.id,
         locale: query?.plugins?.i18n?.locale,
         pageSize: SEARCH_RESULTS_TO_DISPLAY,
       },
@@ -212,7 +204,7 @@ export const RelationInputDataManger = ({
 };
 
 RelationInputDataManger.defaultProps = {
-  componentUid: undefined,
+  componentId: undefined,
   editable: true,
   description: '',
   labelAction: null,
@@ -222,7 +214,7 @@ RelationInputDataManger.defaultProps = {
 };
 
 RelationInputDataManger.propTypes = {
-  componentUid: PropTypes.string,
+  componentId: PropTypes.number,
   editable: PropTypes.bool,
   description: PropTypes.string,
   intlLabel: PropTypes.shape({
