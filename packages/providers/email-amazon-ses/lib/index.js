@@ -2,6 +2,7 @@
 
 const nodeSES = require('node-ses');
 const { removeUndefined } = require('@strapi/utils');
+const validateError = require('../../../utils/error/lib');
 
 module.exports = {
   init(providerOptions = {}, settings = {}) {
@@ -24,15 +25,7 @@ module.exports = {
             ...rest,
           };
           client.sendEmail(removeUndefined(msg), (err) => {
-            if (err) {
-              if (err.Message) {
-                // eslint-disable-next-line prefer-promise-reject-errors
-                reject(`${err.Message} ${err.Detail ? err.Detail : ''}`);
-              }
-              reject(err);
-            } else {
-              resolve();
-            }
+            validateError(err)
           });
         });
       },
